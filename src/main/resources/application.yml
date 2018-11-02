@@ -1,0 +1,11 @@
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://192.168.192.112:3306/sell?useSSL=false&characterEncoding=utf8&useUnicode=true
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name: com.mysql.jdbc.Driver
+  jpa:
+    show-sql: true
+server:
+  context-path: /sell
