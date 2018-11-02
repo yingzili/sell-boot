@@ -9,7 +9,9 @@ public enum ResultEnum {
     QUANTITY_NOT_LEGAL(11,"商品数量不合法"),
     STOCK_NOT_ENOUGH(12,"库存不足"),
     ORDER_NOT_EXIST(13,"订单不存在"),
-    ORDERDETAIL_NOT_EXIST(14,"订单详情不存在");
+    ORDERDETAIL_NOT_EXIST(14,"订单详情不存在"),
+    ORDER_STATUS_ERROR(15,"订单状态不正确"),
+    PAY_STATUS_ERROR(16,"支付状态不正确");
     private Integer code;
     private String message;
 

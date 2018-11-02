@@ -5,6 +5,8 @@ import com.neuedu.sell.dto.OrderDTO;
 import com.neuedu.sell.entity.OrderDetail;
 import com.neuedu.sell.entity.OrderMaster;
 import com.neuedu.sell.entity.ProductInfo;
+import com.neuedu.sell.enums.OrderStatusEnum;
+import com.neuedu.sell.enums.PayStatusEnum;
 import com.neuedu.sell.enums.ResultEnum;
 import com.neuedu.sell.exception.SellException;
 import com.neuedu.sell.repository.OrderDetailRepository;
@@ -108,17 +110,59 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public OrderDTO cancel(OrderDTO orderDTO) {
-        return null;
+        //订单从数据库中查出来，而不是传进去
+        OrderMaster orderMaster =orderMasterRepository.findOne(orderDTO.getOrderId());
+        //1.判断订单状态
+        if (!orderMaster.getOrderStatus().equals(OrderStatusEnum.NEW.getCode())){
+            throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
+        }
+
+        //2.修改订单状态
+        orderMaster.setOrderStatus(OrderStatusEnum.CANCEL.getCode());
+        orderMasterRepository.save(orderMaster);
+        //3.返还库存
+        List<CartDTO> cartDTOList=new ArrayList<>();
+        //根据orderId去查询orderDetail集合
+        List<OrderDetail> orderDetailList=orderDetailRepository.findByOrderId(orderDTO.getOrderId());
+
+        for (OrderDetail orderDetail : orderDetailList) {
+            cartDTOList.add(new CartDTO(orderDetail.getProductId(),orderDetail.getProductQuantity()));
+        }
+        productInfoService.increaseStock(cartDTOList);
+        //4.如果已支付需退款
+
+        return orderDTO;
     }
 
     @Override
     public OrderDTO finish(OrderDTO orderDTO) {
-        return null;
+        //1.从数据库中查询订单信息
+        OrderMaster orderMaster =orderMasterRepository.findOne(orderDTO.getOrderId());
+        //2.判断状态
+        if (!orderMaster.getOrderStatus().equals(OrderStatusEnum.NEW.getCode())){
+            throw new SellException(ResultEnum.ORDER_STATUS_ERROR);
+        }
+        //3.修改状态
+        orderMaster.setOrderStatus(OrderStatusEnum.FINISHED.getCode());
+        //4.保存到数据库
+        orderMasterRepository.save(orderMaster);
+        return orderDTO;
     }
 
     @Override
     public OrderDTO paid(OrderDTO orderDTO) {
-        return null;
+        //1.从数据库查询信息
+        OrderMaster orderMaster =orderMasterRepository.findOne(orderDTO.getOrderId());
+        //2.判断状态
+        if (orderMaster.getPayStatus().equals(PayStatusEnum.PAID.getCode())){
+            throw new SellException(ResultEnum.PAY_STATUS_ERROR);
+        }
+        //3.修改状态
+        orderMaster.setPayStatus(PayStatusEnum.PAID.getCode());
+        //4.保存到数据库
+        orderMasterRepository.save(orderMaster);
+        return orderDTO;
     }
 }
