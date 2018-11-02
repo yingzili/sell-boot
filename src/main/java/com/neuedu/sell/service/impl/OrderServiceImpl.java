@@ -12,9 +12,11 @@ import com.neuedu.sell.repository.OrderMasterRepository;
 import com.neuedu.sell.service.OrderService;
 import com.neuedu.sell.service.ProductInfoService;
 import com.neuedu.sell.utils.KeyUtils;
+import com.neuedu.sell.utils.OrderMaster2OrderDTOConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -85,12 +87,24 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderDTO findOne(String orderId) {
-        return null;
+       OrderMaster orderMaster= orderMasterRepository.findOne(orderId);
+       if (orderMaster == null){
+           throw new SellException(ResultEnum.ORDER_NOT_EXIST);
+       }
+       List<OrderDetail> orderDetailList=orderDetailRepository.findByOrderId(orderId);
+       if (orderDetailList.size()==0){
+           throw new SellException(ResultEnum.ORDERDETAIL_NOT_EXIST);
+       }
+       OrderDTO orderDTO=OrderMaster2OrderDTOConverter.convert(orderMaster);
+       orderDTO.setOrderDetailList(orderDetailList);
+        return orderDTO;
     }
 
     @Override
     public Page<OrderDTO> findList(String buyerOpenid, Pageable pageable) {
-        return null;
+      Page<OrderMaster> orderMasterPage =  orderMasterRepository.findByBuyerOpenid(buyerOpenid,pageable);
+      List<OrderDTO> orderDTOList=OrderMaster2OrderDTOConverter.convert(orderMasterPage.getContent());
+        return new PageImpl<>(orderDTOList,pageable,orderMasterPage.getTotalElements());
     }
 
     @Override
