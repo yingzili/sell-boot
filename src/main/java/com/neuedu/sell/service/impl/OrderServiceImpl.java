@@ -14,7 +14,7 @@ import com.neuedu.sell.repository.OrderMasterRepository;
 import com.neuedu.sell.service.OrderService;
 import com.neuedu.sell.service.ProductInfoService;
 import com.neuedu.sell.utils.KeyUtils;
-import com.neuedu.sell.utils.OrderMaster2OrderDTOConverter;
+import com.neuedu.sell.converter.OrderMaster2OrderDTOConverter;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -73,8 +73,8 @@ public class OrderServiceImpl implements OrderService {
         //3.订单主表入库
 
         OrderMaster orderMaster=new OrderMaster();
+        orderDTO.setOrderId(orderId);
         BeanUtils.copyProperties(orderDTO,orderMaster);
-        orderMaster.setOrderId(orderId);
         orderMaster.setOrderAmount(orderAmount);
         orderMasterRepository.save(orderMaster);
         //4.扣库存
@@ -84,7 +84,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         productInfoService.decreaseStock(cartDTOList);
-        return null;
+        //orderDTO.setOrderId(orderId);
+        return orderDTO;
     }
 
     @Override
